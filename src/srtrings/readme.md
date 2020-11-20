@@ -22,7 +22,7 @@ UpperCase() - преревод маленьких букв в заглавные
 
 LowerCase() - перевод заглавных букв в маленькие. Lowercase symbols in string.
 
-*Примечание: обе фугкции работают с большинством парных европейских символов с диакритами. Плюс греческие символы и кирилица. Для азиатских языков пока не сделано.
+*Примечание: обе процедуры выше работают с большинством парных европейских символов с диакритами. Плюс греческие символы и кирилица. Для азиатских языков пока не сделано.
 
 *Attantion: the above two procedures work with most European diacritical characters. As well as with Greek and Cyrillic symbols. Asian symbols don't work yet.
 
