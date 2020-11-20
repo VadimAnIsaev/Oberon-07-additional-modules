@@ -18,9 +18,9 @@ Insert() - вставка одной строки в другую. Insert substr
 
 Trim() - удаление пробелов и управляющих символов с начала и конца втроки. Delete space and control chars from string.
 
-UpperCase() - преревод маленьких букв в заглавные. Uppercase simbols in string.
+UpperCase() - преревод маленьких букв в заглавные. Uppercase symbols in string.
 
-LowerCase() - перевод заглавных букв в маленькие. Lowercase simbols in string.
+LowerCase() - перевод заглавных букв в маленькие. Lowercase symbols in string.
 
 *Примечание: обе фугкции работают с большинством парных европейских символов с диакритами. Плюс греческие символы и кирилица. Для азиатских языков пока не сделано.
 
