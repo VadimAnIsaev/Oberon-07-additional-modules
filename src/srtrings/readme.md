@@ -8,11 +8,11 @@ in UTF-8 encoding. For compiler lang Oberon of Anton Krotov https://github.com/A
 
 Length() - длина строки в символах. Length of the string (in simbols).
 
-Copy() - копирование части строки из строки. Copy substring fron string.
+Copy() - копирование части строки из строки. Copy substring from string.
 
 Pos() - позиция части строки в строке. Position of substring in string.
 
-Delete() - удаление  части строки из строки. Delete substring ftom string.
+Delete() - удаление  части строки из строки. Delete substring from string.
 
 Insert() - вставка одной строки в другую. Insert substring into string.
 
