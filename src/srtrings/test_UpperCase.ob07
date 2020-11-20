@@ -1,0 +1,350 @@
+﻿MODULE test_UpperCase;
+
+IMPORT Console, Out, StrUtils;
+
+VAR
+  s1, s2: ARRAY 256 OF CHAR;
+  i, j: INTEGER;
+  fb: CHAR;
+BEGIN
+  Console.open;
+
+  fb:=0C3X;
+  FOR i:=160 TO 182 DO
+    s1[j]:=fb;
+    INC(j);
+    s1[j]:=CHR(i);
+    INC(j);
+  END;
+  s1[j]:=0X;
+  StrUtils.UpperCase(s1, s2);
+  Out.String("Lower: ");Out.String(s1);
+  Out.Ln;
+  Out.String("Upper: ");Out.String(s2);
+  Out.Ln;
+
+  j:=0;
+  FOR i:=184 TO 190 DO
+    s1[j]:=fb;
+    INC(j);
+    s1[j]:=CHR(i);
+    INC(j);
+  END;
+  s1[j]:=0X;
+  StrUtils.UpperCase(s1, s2);
+  Out.String("Lower: ");Out.String(s1);
+  Out.Ln;
+  Out.String("Upper: ");Out.String(s2);
+  Out.Ln;
+  Out.Ln;
+
+  fb:=0C4X;
+  j:=0;
+  FOR i:=129 TO 175 DO
+    IF (i MOD 2 = 1) THEN
+      s1[j]:=fb;
+      INC(j);
+      s1[j]:=CHR(i);
+      INC(j);
+    END;
+  END;
+  s1[j]:=0X;
+  StrUtils.UpperCase(s1, s2);
+  Out.String("Lower: ");Out.String(s1);
+  Out.Ln;
+  Out.String("Upper: ");Out.String(s2);
+  Out.Ln;
+
+  j:=0;
+  FOR i:=179 TO 183 DO
+    IF (i MOD 2 = 1) THEN
+      s1[j]:=fb;
+      INC(j);
+      s1[j]:=CHR(i);
+      INC(j);
+    END;
+  END;
+  s1[j]:=0X;
+  StrUtils.UpperCase(s1, s2);
+  Out.String("Lower: ");Out.String(s1);
+  Out.Ln;
+  Out.String("Upper: ");Out.String(s2);
+  Out.Ln;
+
+  j:=0;
+  FOR i:=186 TO 190 DO
+    IF (i MOD 2 = 0) THEN
+      s1[j]:=fb;
+      INC(j);
+      s1[j]:=CHR(i);
+      INC(j);
+    END;
+  END;
+  s1[j]:=0X;
+  StrUtils.UpperCase(s1, s2);
+  Out.String("Lower: ");Out.String(s1);
+  Out.Ln;
+  Out.String("Upper: ");Out.String(s2);
+  Out.Ln;
+  Out.Ln;
+
+  fb:=0C5X;
+  s1[0]:=fb;
+  s1[1]:=CHR(128);
+  s1[2]:=0X;
+  StrUtils.UpperCase(s1, s2);
+  Out.String("Lower: ");Out.String(s1);
+  Out.Ln;
+  Out.String("Upper: ");Out.String(s2);
+  Out.Ln;
+
+  j:=0;
+  FOR i:=130 TO 136 DO
+    IF (i MOD 2 = 0) THEN
+      s1[j]:=fb;
+      INC(j);
+      s1[j]:=CHR(i);
+      INC(j);
+    END;
+  END;
+  s1[j]:=0X;
+  StrUtils.UpperCase(s1, s2);
+  Out.String("Lower: ");Out.String(s1);
+  Out.Ln;
+  Out.String("Upper: ");Out.String(s2);
+  Out.Ln;
+  
+  j:=0;
+  FOR i:=186 TO 190 DO
+    IF (i MOD 2 = 0) THEN
+      s1[j]:=fb;
+      INC(j);
+      s1[j]:=CHR(i);
+      INC(j);
+    END;
+  END;
+  s1[j]:=0X;
+  StrUtils.UpperCase(s1, s2);
+  Out.String("Lower: ");Out.String(s1);
+  Out.Ln;
+  Out.String("Upper: ");Out.String(s2);
+  Out.Ln;
+
+  j:=0;
+  FOR i:=139 TO 183 DO
+    IF (i MOD 2 = 1) THEN
+      s1[j]:=fb;
+      INC(j);
+      s1[j]:=CHR(i);
+      INC(j);
+    END;
+  END;
+  s1[j]:=0X;
+  StrUtils.UpperCase(s1, s2);
+  Out.String("Lower: ");Out.String(s1);
+  Out.Ln;
+  Out.String("Upper: ");Out.String(s2);
+  Out.Ln;
+  Out.Ln;
+  
+  fb:=0C6X;
+  j:=0;
+  FOR i:=131 TO 189 DO
+    s1[j]:=fb;
+    INC(j);
+    CASE i OF
+      | 130,132,135,139,145,152,167,172,175,179,181,184,188: s1[j] := CHR(i)
+      | 160..164: IF (i = 1) THEN
+                    s1[j] := CHR(i)
+                  END
+    ELSE
+      
+    END;
+    INC(j);
+  END;
+  s1[j]:=0X;
+  StrUtils.LowerCase(s1, s2);
+  Out.String("Upper: ");Out.String(s1);
+  Out.Ln;
+  Out.String("Lower: ");Out.String(s2);
+  Out.Ln;
+  Out.Ln;
+
+  
+  fb:=0C7X;
+  j:=0;
+  FOR i:=142 TO 156 DO
+    IF (i MOD 2 = 0) THEN
+      s1[j]:=fb;
+      INC(j);
+      s1[j]:=CHR(i);
+      INC(j);
+    END;
+  END;
+  s1[j]:=0X;
+  StrUtils.UpperCase(s1, s2);
+  Out.String("Lower: ");Out.String(s1);
+  Out.Ln;
+  Out.String("Upper: ");Out.String(s2);
+  Out.Ln;
+  j:=0;  
+  FOR i:=159 TO 175 DO
+    IF (i MOD 2 = 1) THEN
+      s1[j]:=fb;
+      INC(j);
+      s1[j]:=CHR(i);
+      INC(j);
+    END;
+  END;
+  s1[j]:=0X;
+  StrUtils.UpperCase(s1, s2);
+  Out.String("Lower: ");Out.String(s1);
+  Out.Ln;
+  Out.String("Upper: ");Out.String(s2);
+  Out.Ln;  
+  j:=0;
+  FOR i:=185 TO 191 DO
+    IF (i MOD 2 = 1) THEN
+      s1[j]:=fb;
+      INC(j);
+      s1[j]:=CHR(i);
+      INC(j);
+    END;
+  END;
+  s1[j]:=0X;
+  StrUtils.UpperCase(s1, s2);
+  Out.String("Lower: ");Out.String(s1);
+  Out.Ln;
+  Out.String("Upper: ");Out.String(s2);
+  Out.Ln;
+    
+  fb:=0C8X;
+  j:=0;
+  FOR i:=129 TO 159 DO
+    IF (i MOD 2 = 1) THEN
+      s1[j]:=fb;
+      INC(j);
+      s1[j]:=CHR(i);
+      INC(j);
+    END;
+  END;
+  s1[j]:=0X;
+  StrUtils.UpperCase(s1, s2);
+  Out.String("Lower: ");Out.String(s1);
+  Out.Ln;
+  Out.String("Upper: ");Out.String(s2);
+  Out.Ln;  
+  j:=0;
+  FOR i:=163 TO 179 DO
+    IF (i MOD 2 = 1) THEN
+      s1[j]:=fb;
+      INC(j);
+      s1[j]:=CHR(i);
+      INC(j);
+    END;
+  END;
+  s1[j]:=0X;
+  StrUtils.UpperCase(s1, s2);
+  Out.String("Lower: ");Out.String(s1);
+  Out.Ln;
+  Out.String("Upper: ");Out.String(s2);
+  Out.Ln;
+  Out.Ln;
+
+  fb:=0CEX;
+  j:=0;
+  FOR i:=177 TO 191 DO
+    s1[j]:=fb;
+    INC(j);
+    s1[j]:=CHR(i);
+    INC(j);
+  END;
+  s1[j]:=0X;
+  StrUtils.UpperCase(s1, s2);
+  Out.String("Lower: ");Out.String(s1);
+  Out.Ln;
+  Out.String("Upper: ");Out.String(s2);
+  Out.Ln;  
+  
+  fb:=0CFX;
+  j:=0;
+  FOR i:=128 TO 129 DO
+    s1[j]:=fb;
+    INC(j);
+    s1[j]:=CHR(i);
+    INC(j);
+  END;
+  s1[j]:=0X;
+  StrUtils.UpperCase(s1, s2);
+  Out.String("Lower: ");Out.String(s1);
+  Out.Ln;
+  Out.String("Upper: ");Out.String(s2);
+  Out.Ln;  
+
+  s1[0]:=fb;
+  s1[1]:=CHR(130);
+  s1[2]:=0X;
+  StrUtils.UpperCase(s1, s2);
+  Out.String("Lower: ");Out.String(s1);
+  Out.Ln;
+  Out.String("Upper: ");Out.String(s2);
+  Out.Ln;  
+
+  j:=0;
+  FOR i:=132 TO 137 DO
+    s1[j]:=fb;
+    INC(j);
+    s1[j]:=CHR(i);
+    INC(j);
+  END;
+  s1[j]:=0X;
+  StrUtils.UpperCase(s1, s2);
+  Out.String("Lower: ");Out.String(s1);
+  Out.Ln;
+  Out.String("Upper: ");Out.String(s2);
+  Out.Ln;  
+  Out.Ln;
+
+
+
+  fb:=0D0X;
+  j:=0;
+  FOR i:=176 TO 191 DO
+    s1[j]:=fb;
+    INC(j);
+    s1[j]:=CHR(i);
+    INC(j);
+  END;
+  s1[j]:=0X;
+  StrUtils.UpperCase(s1, s2);
+  Out.String("Lower: ");Out.String(s1);
+  Out.Ln;
+  Out.String("Upper: ");Out.String(s2);
+  Out.Ln;  
+  fb:=0D1X;
+  j:=0;
+  FOR i:=128 TO 143 DO
+    s1[j]:=fb;
+    INC(j);
+    s1[j]:=CHR(i);
+    INC(j);
+  END;
+  s1[j]:=0X;
+  StrUtils.UpperCase(s1, s2);
+  Out.String("Lower: ");Out.String(s1);
+  Out.Ln;
+  Out.String("Upper: ");Out.String(s2);
+  Out.Ln;
+
+  s1[0]:=fb;
+  s1[1]:=091X;
+  s1[2]:=0X;
+  StrUtils.UpperCase(s1, s2);
+  Out.String("Lower: ");Out.String(s1);
+  Out.Ln;
+  Out.String("Upper: ");Out.String(s2);
+  Out.Ln;
+
+  
+  Console.exit(TRUE);
+END test_UpperCase.

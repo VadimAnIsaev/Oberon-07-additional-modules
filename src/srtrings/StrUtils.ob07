@@ -1,0 +1,684 @@
+﻿(***********************************************
+  Модуль обработки строк для UTF-8.
+  Простейшие процедуры.
+  Вадим Исаев, 2020.
+  Elementary procedures for processing strings 
+  in UTF-8 encoding.
+  Vadim Isaev, 2020.
+  
+  Основная единица отсчёта в параметрах процедур - 
+  символ.
+  The basic unit of counting in procedure parameters 
+  is a symbol.
+  
+  ВНИМАНИЕ!!!!!
+  Отсчёт символов в строке начинается с 0,
+  а не с 1 (не как в Pascal\Delphi).
+  ATTENTION!!!!!
+  The counting of characters in a line starts from 0,
+  not with 1 (not like Pascal\Delphi).
+  *********************************************** *)
+MODULE StrUtils;
+
+IMPORT MathBits, Out;
+
+(* Количество символов в строке.
+   Returns the length of the string (array of "s"). 
+   If the string "s" is empty, 0 is returned. *)
+PROCEDURE Length* (s: ARRAY OF CHAR): INTEGER;
+VAR
+  i, j, Lens: INTEGER;
+  
+BEGIN
+  Lens := LENGTH(s);
+  IF Lens>0 THEN
+    WHILE i<Lens DO
+      (* Если русский алфавит или евробуквы с диакрит.знаками *)
+      IF (ORD(s[i])>127) THEN
+        INC(j);
+        INC(i);
+      END;
+      INC(i);
+    END;
+  END;
+
+  RETURN Lens - j
+END Length;
+
+(* Копирование из строки source в строку result, начиная с позиции
+   start, count символов. 
+   Copy returns a string which is a copy if the "count" characters 
+   in "source", starting at position "start".*)
+PROCEDURE Copy* (source: ARRAY OF CHAR; start, count: INTEGER; 
+			VAR result: ARRAY OF CHAR);
+VAR
+  i,j, p1,p2: INTEGER;
+BEGIN
+  ASSERT(LENGTH(source) <= LEN(result));
+  (* Поиск места старта *)
+  IF start>0 THEN
+    REPEAT
+      IF ORD(source[i])>127 THEN
+        INC(j);
+        INC(i);
+      END;
+      INC(i)
+    UNTIL (i-j)=start;
+  END;
+  p1 := i;
+
+  (* Поиск места останова *)
+  i := 0;
+  j := 0;
+  WHILE (i-j)<count DO
+    IF ORD(source[p1+i])>127 THEN
+      INC(i);
+      INC(j);
+    END;
+    INC(i);
+  END;
+  p2 := i;
+
+  (* Копирование *)
+  j := 0;
+  FOR i:=p1 TO p2 DO
+    result[j] := source[i];
+    INC(j);
+  END;
+  
+END Copy;
+
+(* Ищет строку substring в строке string, начиная с позиции start.
+   Возвращает позицию начала substring или -1, если substring 
+   не найдена.
+   Returns the index of "substring" in "string" (starting from position 
+   "start"), if "string" contains "substring". 
+   In case "substring" isn’t found, -1 is returned. 
+   The search is case-sensitive. *)
+PROCEDURE Pos* (substring, string: ARRAY OF CHAR; start: INTEGER): INTEGER;
+VAR
+  Lens1, Lens2, i, j, p1, result: INTEGER;
+  Yes: BOOLEAN;
+BEGIN
+  result := -1;
+  Lens1 := LENGTH(substring);
+  Lens2 := LENGTH(string);
+
+  IF Lens2>0 THEN
+    IF Lens1>0 THEN
+      IF Lens1<=Lens2 THEN
+      
+        (* Поиск места старта *)
+        IF start>0 THEN
+          REPEAT
+            IF ORD(string[i])>127 THEN
+              INC(i);
+              INC(j);
+            END;
+            INC(i);
+          UNTIL (i-j)=start;
+        END;
+
+        p1 := i;
+        WHILE ((p1+Lens1)<=Lens2) & (~ Yes) DO
+          Yes:=TRUE;
+          i:=0;
+          
+          WHILE (i<Lens1) & (Yes) DO
+            IF ORD(string[p1+i]) # ORD(substring[i]) THEN
+              Yes:=FALSE;
+            END;
+            INC(i); 
+          END;
+          
+          IF Yes THEN
+            result:=p1-j;
+          ELSE
+            IF ORD(string[p1])>127 THEN
+              INC(j);
+              INC(p1);
+            END;
+            INC(p1)
+          END;
+        END;
+
+      END;
+    END;
+  END;
+
+  RETURN result
+END Pos;
+
+(* Удаление символов из строки string, начиная с позиции start в количестве
+   count.
+   Removes "count" characters from "string", starting at position "start" *)
+PROCEDURE Delete* (VAR string: ARRAY OF CHAR; start, count: INTEGER);
+VAR
+  i, j, p1, p2, Lens: INTEGER;
+BEGIN
+  Lens := LENGTH(string);
+
+  (* Поиск позиции старта *)
+  IF start>0 THEN
+    REPEAT
+      IF ORD(string[i])>127 THEN
+        INC(j);
+        INC(i);
+      END;
+      INC(i)
+    UNTIL (i-j)=start;
+  END;
+  p1 := i;
+
+  (* Поиск места останова *)
+  i := 0;
+  j := 0;
+  WHILE (i-j)<count DO
+    IF ORD(string[p1+i])>127 THEN
+      INC(i);
+      INC(j);
+    END;
+    INC(i);
+  END;
+  p2 := i;
+
+
+  FOR i:=p2+1 TO Lens DO
+    string[p1] := string[i];
+    INC(p1);
+  END;
+  string[p1] := 0X;
+END Delete;
+
+(* Вставка строки string в строку result, начиная с позиции index. 
+   Inserts "string" in string "result", at position "index", shifting 
+   all characters after "index" to the right. *)
+PROCEDURE Insert* (string: ARRAY OF CHAR; VAR result: ARRAY OF CHAR;
+			index: INTEGER);
+VAR
+  i, j, n: INTEGER;
+  Lens, Lenr, Lend: INTEGER;
+BEGIN
+  Lens:=LENGTH(string);
+  IF Lens>0 THEN
+    Lenr:=LENGTH(result);
+    Lend:=LEN(result);
+    IF Lens+Lenr<=Lend THEN
+    
+      (* Поиск позиции вставки *)
+      WHILE (i-j)<index DO
+        IF ORD(result[i])>127 THEN
+          INC(j);
+          INC(i);
+        END;
+        INC(i);
+      END;
+
+      (* Перенос части строки result на новой место, 
+         за пределы вставляемой подстроки *)
+      IF i<Lenr THEN
+        n:=i+Lens;
+        FOR j:=0 TO Lenr-i DO
+          result[Lenr+Lens-i-j]:=result[Lenr-j];
+        END;
+      END;
+      
+      (* Вставка подстроки string *)
+      FOR j:=0 TO Lens-1 DO
+        result[i+j]:=string[j];
+      END;
+    END;
+  END;
+
+END Insert;
+
+(*  Удаление с начала и конца строки source символов с кодом 32
+    и менее. Результат - в строке "result".
+    Strips blank characters (spaces and control characters) at the 
+    beginning and end of "source" and returns the resulting string
+    to "result". All characters with ordinal values less than or equal 
+    to 32 (a space) are stripped. *)
+PROCEDURE Trim* (source: ARRAY OF CHAR; VAR result: ARRAY OF CHAR);
+VAR
+  LenS, start, end, i, j: INTEGER;
+BEGIN
+  LenS:=LENGTH(source);
+  IF LenS>0 THEN
+    WHILE ORD(source[start])<=32 DO
+      INC(start);
+    END;
+    end:=LenS-1;
+    WHILE ORD(source[end])<=32 DO
+      DEC(end);
+    END;
+
+    FOR i:=start TO end DO
+      result[j]:=source[i];
+      INC(j);
+    END;
+    result[j]:=0X;
+  END;
+
+END Trim;
+
+
+(* Преобразует строку source с маленькими буквами в строку result
+   с заглавными буквами.
+   Returns the uppercase version of "source" into "result" *)
+PROCEDURE UpperCase* (source: ARRAY OF CHAR; VAR result: ARRAY OF CHAR);
+VAR
+  i, Lens, Lend, CharN1, CharN2: INTEGER;
+BEGIN
+  Lens := LENGTH(source);
+  Lend := LEN(result);
+  IF (Lens>0) & (Lend >= Lens) THEN
+    
+    WHILE i<Lens DO
+      CharN1 := ORD(source[i]);
+      (* Латинские основные *)
+      IF (CharN1 < 127) THEN
+        IF (CharN1 >= 97) & (CharN1 <= 122) THEN
+          result[i] := CHR(CharN1 - 32)
+        ELSE
+          result[i] := source[i]
+        END
+      ELSE
+        (* Кирилица или евробуквы с диакритами *)
+        result[i] := source[i];
+        
+        (* Переход на второй байт *)
+        INC(i);
+        CharN2 := ORD(source[i]);
+//        Out.Int(CharN1, 4);Out.Int(CharN2, 4);Out.Ln;
+        CASE CharN1 OF
+          (* евробуквы с диакритами *)
+          (* C3 *)
+          | 195: CASE CharN2 OF
+                   | 160..182,184..190: result[i] := CHR(CharN2 - 32)
+                   | 191: result[i-1] := 0C5X; result[i] := 0B8X;
+                   | 223: result[i-1] := 0E1X; result[i] := 0BAX;
+                 ELSE
+                   result[i] := source[i];
+                 END
+          (* C4 *)
+          | 196: CASE CharN2 OF
+                   | 129..175,179..183: IF (CharN2 MOD 2 = 1) THEN
+                                          result[i] := CHR(CharN2 - 1)  
+                                        ELSE
+                                          result[i] := source[i];
+                                        END
+                   | 186..190: IF (CharN2 MOD 2 = 0) THEN 
+                                 result[i] := CHR(CharN2 - 1)
+                               ELSE
+                                 result[i] := source[i];
+                               END
+                 ELSE
+                   result[i] := source[i];
+                 END 
+          (* C5 *)
+          | 197: CASE CharN2 OF
+                   | 128: result[i-1] := 0C4X; result[i] := 0BFX;
+                   | 130..136,186..190: IF (CharN2 MOD 2 = 0) THEN 
+                                          result[i] := CHR(CharN2 - 1)
+                                        ELSE
+                                          result[i] := source[i];
+                                        END
+                   | 139..183: IF (CharN2 MOD 2 = 1) THEN 
+                                 result[i] := CHR(CharN2 - 1)
+                               ELSE
+                                 result[i] := source[i];
+                               END
+                 ELSE
+                   result[i] := source[i];
+                 END 
+          (* C6 *)
+          | 198: CASE CharN2 OF
+                   | 130,132,135,139,145,152,167,172,175,179,181,184,188: result[i] := CHR(CharN2 + 1)
+                   | 160..164: IF (CharN2 MOD 2 = 0) THEN
+                                 result[i] := CHR(CharN2 + 1)
+                               ELSE
+                                 result[i] := source[i];
+                               END
+                 ELSE
+                   result[i] := source[i];
+                 END
+
+          (* C7 *)
+          | 199: CASE CharN2 OF
+                   | 142..156: IF (CharN2 MOD 2 = 0) THEN
+                                 result[i] := CHR(CharN2 - 1)
+                               ELSE
+                                 result[i] := source[i];
+                               END
+                   | 159..175,185..191: IF (CharN2 MOD 2 = 1) THEN 
+                                          result[i] := CHR(CharN2 - 1)
+                                        ELSE
+                                          result[i] := source[i];
+                                        END
+                 ELSE
+                   result[i] := source[i];
+                 END
+          (* C8 *)
+          | 200: CASE CharN2 OF
+                   | 129..159,163..179: IF (CharN2 MOD 2 = 1) THEN
+                                          result[i] := CHR(CharN2 - 1) 
+                                        ELSE
+                                          result[i] := source[i];
+                                        END
+                 ELSE
+                   result[i] := source[i];
+                 END 
+          (* Греческие *)
+          (* CharN1 = CE *)
+          | 206: IF (CharN2 >= 177) & (CharN2 <= 191) THEN
+                   result[i] := CHR(CharN2 - 32)  
+                   
+                 ELSE
+                   result[i] := source[i];
+                   
+                 END
+
+          (* CharN1 = CF *)
+          | 207: CASE CharN2 OF
+                   | 128,129: result[i-1]:=0CEX; result[i] := CHR(CharN2 + 32)
+                   | 130: result[i-1]:=0CEX; result[i] := CHR(CharN2 + 33)
+                   | 131..137: result[i-1]:=0CEX; result[i] := CHR(CharN2 + 32)  
+                 ELSE
+                   result[i] := source[i];
+                 END
+          
+          (* Русские *)
+          (* а ... п *)
+          (* CharN1 = D0 *)
+          | 208: IF (CharN2 >= 176) & (CharN2 <= 191) THEN
+                   result[i] := CHR(CharN2 - 32)  
+                 ELSE
+                   result[i] := source[i];
+                 END
+                 
+          (* ё, р ... я *)
+          (* D1 *)
+          | 209: result[i-1] := 0D0X;
+                 CASE CharN2 OF
+                   | 128..143: result[i] := CHR(CharN2 + 32)
+                   | 145     : result[i] := 81X;
+                 ELSE
+                   result[i] := source[i];
+                 END
+          ELSE
+            result[i] := source[i];
+        END;
+      END;
+      INC(i);
+    END;
+    result[i]:=0X;
+  END;
+END UpperCase;
+
+(* Преобразует строку source с заглавными буквами в строку result
+   с маленькими буквами.
+   Returns the lowercase version of "source" into "result" *)
+PROCEDURE LowerCase* (source: ARRAY OF CHAR; VAR result: ARRAY OF CHAR);
+VAR
+  i, Lens, Lend, CharN1, CharN2: INTEGER;
+BEGIN
+  Lens := LENGTH(source);
+  Lend := LEN(result);
+  IF (Lens>0) & (Lend >= Lens) THEN
+     
+    WHILE i<Lens DO
+      CharN1 := ORD(source[i]);
+      (* Латинские, основные символы *)
+      IF (CharN1 < 127) THEN
+        IF (CharN1 >= 65) & (CharN1 <= 90) THEN
+          result[i] := CHR(CharN1 + 32)
+        ELSE
+          result[i] := source[i]
+        END
+      ELSE
+        (* Кирилица или евросимволы с диакритами *)
+        result[i] := source[i];
+
+        (* Переход на второй байт *)
+        INC(i);
+        CharN2 := ORD(source[i]);
+        CASE CharN1 OF
+          (* евросимволы с диакритами *)
+          (* C3 *)
+          | 195: CASE CharN2 OF
+                   | 128..150,152..158: result[i] := CHR(CharN2 + 32)
+                 ELSE  
+                   result[i] := source[i];
+                 END
+          (* C4 *)
+          | 196: CASE CharN2 OF
+                   | 128..174,178..182: IF (CharN2 MOD 2 = 0) THEN
+                                          result[i] := CHR(CharN2 + 1)  
+                                        ELSE
+                                          result[i] := source[i];
+                                        END
+                   | 185..189: IF (CharN2 MOD 2 = 1) THEN
+                                 result[i] := CHR(CharN2 + 1)  
+                               ELSE
+                                 result[i] := source[i];
+                               END
+                   | 191: result[i-1] := 0C5X; result[i] := 080X;
+                 ELSE
+                   result[i] := source[i];
+                 END 
+          (* C5 *)
+          | 197: CASE CharN2 OF 
+                   | 129..135,185..189: IF (CharN2 MOD 2 = 1) THEN 
+                                          result[i] := CHR(CharN2 + 1)
+                                        ELSE
+                                          result[i] := source[i];
+                                        END
+                   | 138..182: IF (CharN2 MOD 2 = 0) THEN 
+                                 result[i] := CHR(CharN2 + 1)
+                               ELSE
+                                 result[i] := source[i];
+                               END
+                   | 184: result[i-1] := 0C3X; result[i] := 0BFX;
+                 ELSE
+                   result[i] := source[i];
+                 END 
+          (* C6 *)
+          | 198: CASE CharN2 OF
+                   | 131,133,136,140,146,153,168,173,176,180,182,185,189: result[i] := CHR(CharN2 - 1)
+                   | 161..165: IF (CharN2 MOD 2 = 1) THEN
+                                 result[i] := CHR(CharN2 - 1)
+                               ELSE
+                                 result[i] := source[i];
+                               END
+                 ELSE
+                   result[i] := source[i];
+                 END
+          (* C7 *)
+          | 199: CASE CharN2 OF
+                   | 141..155: IF (CharN2 MOD 2 = 1) THEN
+                                 result[i] := CHR(CharN2 + 1)
+                               ELSE
+                                 result[i] := source[i];
+                               END
+                   | 158..174,184..190: IF (CharN2 MOD 2 = 0) THEN 
+                                          result[i] := CHR(CharN2 + 1)
+                                        ELSE
+                                          result[i] := source[i];
+                                        END
+                 ELSE
+                   result[i] := source[i];
+                 END
+          (* C8 *)
+          | 200: CASE CharN2 OF
+                   | 128..158,162..178: IF (CharN2 MOD 2 = 0) THEN
+                                          result[i] := CHR(CharN2 + 1) 
+                                        ELSE
+                                          result[i] := source[i];
+                                        END
+                 ELSE
+                   result[i] := source[i];
+                 END 
+          (* Греческие *)
+          (* CE *)
+          | 206: CASE CharN2 OF
+                   | 145..159: result[i] := CHR(CharN2 + 32)
+                   | 160..161: result[i-1] := 0CFX; result[i] := CHR(CharN2 - 32);
+                   | 163: result[i-1] := 0CFX; result[i] := CHR(CharN2 - 33);
+                   | 164..169: result[i-1] := 0CFX; result[i] := CHR(CharN2 - 32);
+                 ELSE
+                   result[i] := source[i];
+                 END
+          (* Русские *)
+          (* DO *)
+          | 208: CASE CharN2 OF
+                   (* Ё *)
+                   | 129: result[i-1] := 0D1X; result[i] := 91X;
+                   (* А ... П *)
+                   | 144..159: result[i] := CHR(CharN2 + 32)
+                   (* Р ... Я *)
+                   | 160..175: result[i-1] := 0D1X;
+                               result[i]   := CHR(CharN2 - 32)
+                 ELSE
+                   result[i] := source[i];
+                 END
+
+          (* ß *)
+          | 225  : IF CharN2 = 186 THEN
+                     result[i-1] := 0C3X;
+                     result[i] := 9FX;
+                   ELSE
+                     result[i] := source[i];
+                   END
+          ELSE
+            result[i] := source[i];
+        END;
+      END;
+      INC(i);
+    END;
+    result[i]:=0X;
+  END;
+END LowerCase;
+
+(* Представление целого числа val в шестнадцатиричном виде result
+   с количеством знаков count.
+   Returns a string "result" with the hexadecimal representation of 
+   integer "val". The string has exactly "count" characters. *)
+PROCEDURE IntToHex* (val, count: INTEGER; VAR result: ARRAY OF CHAR);
+VAR
+  i: INTEGER;
+  HexTbl: ARRAY 17 OF CHAR;
+BEGIN
+  HexTbl := "0123456789ABCDEF";
+  FOR i:=0 TO LEN(result)-1 DO
+    result[i]:=0X;
+  END;
+  result[count+1] := "X";
+  FOR i := count TO 1 BY -1 DO
+    result[i] := HexTbl[MathBits.iand(val, 15)];
+    val := LSR(val, 4);
+  END;
+  result[0]:="0";
+  
+END IntToHex;
+
+(* Преобразование строки шестнадцатиричных цифр source 
+   в целое число.
+   Returns a integer value from hexadecimal representation 
+   of string "source" *)
+PROCEDURE HexToInt* (source: ARRAY OF CHAR): INTEGER;
+VAR
+  i, result, CharN: INTEGER;
+
+BEGIN
+  FOR i:=1 TO LENGTH(source)-2 DO 
+    result:=LSL(result, 4);
+    CharN := ORD(source[i]);
+    CASE CharN OF
+      | 48..57 : INC(result, CharN-ORD('0'));
+      | 65..70 : INC(result, CharN-ORD('A')+10);
+    END;
+  END;
+
+  RETURN result
+END HexToInt;
+
+(*  Преобразует строку source в целое число.
+    Если в строке есть символы, которые не соответствуют
+    той или иной цифре, выбрасывается исклоючение.
+    Convert the string "source" to an integer. 
+    If the string contains invalid characters or has an
+    invalid format, then Error is raised *)
+PROCEDURE StrToInt* (source: ARRAY OF CHAR): INTEGER;
+VAR
+  i, result, CharN: INTEGER;
+  LenT, start: INTEGER;
+  temp: ARRAY 64 OF CHAR;
+  IsNeg: BOOLEAN;
+
+BEGIN
+  Trim(source, temp);
+  LenT:=LENGTH(temp);
+  IF LenT>0 THEN
+    IF temp[0]="-" THEN
+      IsNeg:=TRUE;
+      start:=1
+    ELSIF temp[0]="+" THEN
+      start:=1
+    END;
+    
+    FOR i:=start TO LENGTH(temp)-1 DO 
+      CharN := ORD(temp[i]);
+      ASSERT((CharN>=48) & (CharN<=57));
+      result:=(result*10+(CharN-48));
+    END;
+  
+    IF IsNeg THEN
+      result:=-result;
+    END;
+  END;
+
+  RETURN result
+END StrToInt;
+
+(*  Преобразует целое значение val в строковое предсиавление.
+    Coverts integer "val" to it’s string representation "result". 
+    The resulting string has only as much characters as needed 
+    to represent the value. If the value is negative a minus 
+    sign is prepended to the string. *)
+PROCEDURE IntToStr* (val: INTEGER; VAR result: ARRAY OF CHAR);
+VAR
+  i: INTEGER;
+  Temp: ARRAY 21 OF CHAR;
+  IsNeg: BOOLEAN;
+BEGIN
+  IF val = 0 THEN
+    result[0]:="0";
+    result[1]:=0X;
+  ELSE
+    IsNeg:=val<0;
+    IF IsNeg THEN
+      val:=-val
+    END;
+    FOR i := 20 TO 0 BY -1 DO
+      Temp[i] := CHR((val MOD 10)+48);
+      val := val DIV 10;
+    END;
+
+    i:=0;
+    WHILE Temp[i] = "0" DO
+      Temp[i]:=" ";
+      INC(i);
+    END;
+
+    Trim(Temp, result);
+    IF IsNeg THEN
+      Insert("-", result, 0)
+    END;
+  END;
+
+END IntToStr;
+
+
+BEGIN
+
+END StrUtils.
