@@ -244,11 +244,11 @@ VAR
 BEGIN
   LenS:=LENGTH(source);
   IF LenS>0 THEN
-    WHILE ORD(source[start])<=32 DO
+    WHILE (ORD(source[start])<=32) & (start<LenS) DO
       INC(start);
     END;
     end:=LenS-1;
-    WHILE ORD(source[end])<=32 DO
+    WHILE (ORD(source[end])<=32) & (end>0) DO
       DEC(end);
     END;
 
