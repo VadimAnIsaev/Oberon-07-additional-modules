@@ -243,6 +243,7 @@ VAR
   LenS, start, end, i, j: INTEGER;
 BEGIN
   LenS:=LENGTH(source);
+  result[0]:=0X;
   IF LenS>0 THEN
     WHILE (ORD(source[start])<=32) & (start<LenS-1) DO
       INC(start);
